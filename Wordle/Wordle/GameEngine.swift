@@ -26,18 +26,16 @@ class GameEngine: ObservableObject {
         ) {
             if let expireDate = decodeDate(dateStr: expireDateStr as! String) {
                 if currentDate > expireDate {
-                    let expireDate = getNewDate().toString()
+                    let expireDateStr = getNewDate().toString()
                     UserDefaults.standard
-                        .set(expireDate, forKey: expireDateKey)
+                        .set(expireDateStr, forKey: expireDateKey)
                     resetCache = true
-
                 }
             } else {
                 let expireDate = getNewDate().toString()
                 UserDefaults.standard
                     .set(expireDate, forKey: expireDateKey)
                 resetCache = true
-
             }
 
         } else {
@@ -52,21 +50,20 @@ class GameEngine: ObservableObject {
             let decoder = JSONDecoder()
 
             if let word = UserDefaults.standard.value(forKey: wordOfTheDayKey) {
+
                 do {
                     let wordStr = try decoder.decode(
                         String.self,
                         from: word as! Data
                     )
-
-                    
                     self.wordOfTheDay = wordStr
                 } catch {
                     self.wordOfTheDay = ""
-                    
+
                 }
             } else {
                 self.wordOfTheDay = ""
-                
+
             }
 
             if let wordListJSON = UserDefaults.standard.value(
@@ -78,15 +75,15 @@ class GameEngine: ObservableObject {
                         Array<String>.self,
                         from: wordListJSON as! Data
                     )
-                   
+
                     self.wordList = wordList
                 } catch {
                     self.wordList = []
-                    
+
                 }
             } else {
                 self.wordList = []
-                
+
             }
 
         } else {
@@ -102,7 +99,6 @@ class GameEngine: ObservableObject {
 
     func save(newWordOfTheDay: String) {
         do {
-            
             let encoder = JSONEncoder()
             let encodedValue = try encoder.encode(newWordOfTheDay)
             UserDefaults.standard.set(encodedValue, forKey: wordOfTheDayKey)
@@ -121,18 +117,30 @@ class GameEngine: ObservableObject {
             print("Error during encoding word list")
         }
     }
+    
+    func generateNewWordOfTheDay() {
+        var randomNumber = SystemRandomNumberGenerator()
+        let wordsCount = self.fullList.count
+        if wordsCount > 0 {
+            let number = randomNumber.next(
+                upperBound: UInt(wordsCount)
+            )
+
+            let wordOfTheDay = self.fullList[Int(number)]
+            save(newWordOfTheDay: String(wordOfTheDay))
+        }
+    }
 
     func addWord(newWord: String) {
         self.wordList.append(newWord)
         saveWordList(newWordList: self.wordList)
-        
-        if (self.wordList.count >= 1) {
+
+        if self.wordList.count >= 3 {
             self.gameOver = true
         }
     }
 
     func clearCache() {
-        print("here")
         UserDefaults.standard.removeObject(forKey: expireDateKey)
         UserDefaults.standard.removeObject(forKey: wordOfTheDayKey)
         UserDefaults.standard.removeObject(forKey: wordListKey)
@@ -140,8 +148,9 @@ class GameEngine: ObservableObject {
         self.wordList = []
         self.wordOfTheDay = ""
         self.gameOver = false
+        generateNewWordOfTheDay()
     }
-    
+
     func saveAllWords(fullList: [String]) {
         if self.fullList.isEmpty {
             self.fullList = fullList
