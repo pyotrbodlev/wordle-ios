@@ -12,6 +12,8 @@ class GameEngine: ObservableObject {
     @Published var wordList: [String] = []
     @Published var wordOfTheDay: String
     @Published var expireDate: Date = Date()
+    @Published var fullList: [String] = []
+    @Published var gameOver: Bool = false
     private let currentDate: Date = Date()
     private let wordOfTheDayKey = "WORD_OF_THE_DAY"
     private let wordListKey = "WORD_LIST"
@@ -123,15 +125,27 @@ class GameEngine: ObservableObject {
     func addWord(newWord: String) {
         self.wordList.append(newWord)
         saveWordList(newWordList: self.wordList)
+        
+        if (self.wordList.count >= 1) {
+            self.gameOver = true
+        }
     }
 
     func clearCache() {
+        print("here")
         UserDefaults.standard.removeObject(forKey: expireDateKey)
         UserDefaults.standard.removeObject(forKey: wordOfTheDayKey)
         UserDefaults.standard.removeObject(forKey: wordListKey)
 
         self.wordList = []
         self.wordOfTheDay = ""
+        self.gameOver = false
+    }
+    
+    func saveAllWords(fullList: [String]) {
+        if self.fullList.isEmpty {
+            self.fullList = fullList
+        }
     }
 }
 

@@ -16,15 +16,19 @@ struct ContentView: View {
     var body: some View {
         VStack {
             WordsView()
+            Spacer()
             KeyboardView()
         }.onReceive(
             model.$data,
             perform: { data in
-                
+
                 if engine.wordOfTheDay.isEmpty {
                     var randomNumber = SystemRandomNumberGenerator()
                     if data.count > 0 {
-                        let words = data.split(separator: "\n")
+                        let words = data.split(separator: "\n").map({ item in
+                            return String(item)
+                        })
+                        engine.saveAllWords(fullList: words)
                         let wordsCount = words.count
                         if wordsCount > 0 {
                             let number = randomNumber.next(
