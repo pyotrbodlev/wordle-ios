@@ -9,11 +9,24 @@ import SwiftUI
 
 struct WordsView: View {
     @EnvironmentObject var engine: GameEngine
+    @State var gameOver: Bool = false
+    @State var wordOfTheDay: String = ""
     
     var body: some View {
-        ForEach(engine.wordList, id: \.hashValue) { word in
-            SingleWordView(suggestedWord: word)
-        }
+        VStack {
+            ForEach(engine.wordList, id: \.hashValue) { word in
+                SingleWordView(suggestedWord: word)
+            }
+            
+            if gameOver {
+                Text("Correct word is " + engine.wordOfTheDay)
+            }
+        }.onReceive(engine.$gameOver, perform: { isOver in
+            gameOver = isOver
+        }).onReceive(engine.$wordOfTheDay, perform: { word in
+            wordOfTheDay = word
+        })
+        
     }
 }
 

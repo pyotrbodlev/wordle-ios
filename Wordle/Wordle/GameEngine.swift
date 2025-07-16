@@ -14,6 +14,7 @@ class GameEngine: ObservableObject {
     @Published var expireDate: Date = Date()
     @Published var fullList: [String] = []
     @Published var gameOver: Bool = false
+    private let MAX_WORD_LIMIT = 5
     private let currentDate: Date = Date()
     private let wordOfTheDayKey = "WORD_OF_THE_DAY"
     private let wordListKey = "WORD_LIST"
@@ -21,10 +22,10 @@ class GameEngine: ObservableObject {
     private var resetCache = false
 
     init() {
-        if let expireDateStr = UserDefaults.standard.value(
+        if let expireDateStr = UserDefaults.standard.string(
             forKey: expireDateKey
         ) {
-            if let expireDate = decodeDate(dateStr: expireDateStr as! String) {
+            if let expireDate = expireDateStr.toDate() {
                 if currentDate > expireDate {
                     let expireDateStr = getNewDate().toString()
                     UserDefaults.standard
@@ -77,6 +78,9 @@ class GameEngine: ObservableObject {
                     )
 
                     self.wordList = wordList
+                    if wordList.count >= MAX_WORD_LIMIT {
+                        gameOver = true
+                    }
                 } catch {
                     self.wordList = []
 
@@ -117,7 +121,7 @@ class GameEngine: ObservableObject {
             print("Error during encoding word list")
         }
     }
-    
+
     func generateNewWordOfTheDay() {
         var randomNumber = SystemRandomNumberGenerator()
         let wordsCount = self.fullList.count
@@ -135,7 +139,7 @@ class GameEngine: ObservableObject {
         self.wordList.append(newWord)
         saveWordList(newWordList: self.wordList)
 
-        if self.wordList.count >= 3 {
+        if self.wordList.count >= MAX_WORD_LIMIT {
             self.gameOver = true
         }
     }
@@ -161,7 +165,7 @@ class GameEngine: ObservableObject {
 func getNewDate() -> Date {
     let currentDate = Date()
     var dateComponents = DateComponents()
-    dateComponents.minute = 1
+    dateComponents.minute = 20
     dateComponents.month = 0
     dateComponents.day = 0
     dateComponents.year = 0
@@ -170,10 +174,6 @@ func getNewDate() -> Date {
         to: currentDate
     )
     return futureDate!
-}
-
-func decodeDate(dateStr: String) -> Date? {
-    return dateStr.toDate()
 }
 
 extension String {
